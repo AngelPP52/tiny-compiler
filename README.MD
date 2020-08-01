@@ -180,7 +180,7 @@ class end1 stroke-dash
 
 分词结果：
 
-![](D:\workspace\master\frame_work_learning\_workspace\tiny-compiler\images\tokenizer结果.jpg)
+![](https://github.com/AngelPP0502/tiny-compiler/blob/master/images/tokenizer%E7%BB%93%E6%9E%9C.jpg)
 
 ## 语法分析
 
