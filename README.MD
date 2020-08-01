@@ -178,13 +178,7 @@ class end1 stroke-dash
 
 实现：./src/tokenizer.js
 
-<<<<<<< HEAD
 分词结果：./src/images/tokenizer.png
-=======
-分词结果：
-
-![](https://github.com/AngelPP0502/tiny-compiler/blob/master/images/tokenizer.jpg)
->>>>>>> b2407601957e21df25a924accba6a0dadb36e207
 
 ## 语法分析
 
