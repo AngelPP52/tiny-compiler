@@ -1,10 +1,11 @@
-// 生成器（生成ReactJS代码）
+// 生成器（生成ReactJS代码，这里不加JSX的生成器逻辑了，感兴趣可以自己照着模子加）
 
 function codeGenerator(node) {
     switch (node.type) {
         case 'Program':
             return node.body.map(codeGenerator).join('\n');
 
+        // ReactJS的代码生成器
         case 'ExpressionStatement':
             return (
                 codeGenerator(node.expression) + ';'

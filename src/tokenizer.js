@@ -1,5 +1,6 @@
-// 词法分析，分词
-// 有限状态机
+// 词法分析，分词（请配合.MD的词法分析部分食用）
+// 有限状态机（请配合.MD的有限状态机部分食用）
+
 let LETTERS = /^[a-zA-Z0-9_]$/;
 let NOT_LEFT_SEM = /^</;
 
@@ -8,7 +9,7 @@ let tokens = [];
 
 function emit(token) {
     // console.log(token);
-    currentToken = { type: "", value: "" };
+    currentToken = { type: "", value: "" }; // 清空一下currentToken，避免污染下一个单词
     tokens.push(token);
 }
 
@@ -18,7 +19,6 @@ function start(char) {
         return foundParenL;
     }
     return start;
-    throw new TypeError("Error");
 }
 
 function foundParenL(char) {
@@ -43,7 +43,6 @@ function foundParenR(char) {
         currentToken.type = "text";
         return text;
     }
-    throw new TypeError("Error");
 }
 
 function label(char) {

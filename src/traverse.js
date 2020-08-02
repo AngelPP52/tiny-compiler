@@ -1,6 +1,7 @@
 // 遍历器（JSX语法树和ReactJS语法树）
 // 访问器是用户自定义的
 // JSX表达式TODO
+
 const { parser } = require('./parser');
 
 function traverse(ast, visitor) {

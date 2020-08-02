@@ -1,4 +1,5 @@
-// 语法分析，生成ast
+// 语法分析，生成ast（请配合.MD的语法分析部分食用）
+
 const { tokenizer } = require('./tokenizer');
 
 function parser(code) {

@@ -2,8 +2,9 @@
 // 返回TODO，不改变原来的ast
 
 const { traverse } = require('./traverse');
+const { parser } = require('./parser');
 
-class t {
+class t { // 这里模拟@babel/types的一些方法
     static nullLiteral() {
         return {
             type: 'NullLiteral'

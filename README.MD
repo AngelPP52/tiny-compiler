@@ -40,6 +40,8 @@ class start stroke-dash
 class end1 stroke-dash
 ```
 
+![](https://github.com/AngelPP52/tiny-compiler/blob/master/images/singleLabel.jpg)
+
 - 实际词法转AST时，反斜杠则表示标签是单闭合的，并且下一个右分号直接完成此节点的解析
 - 标签和属性都是同级的"属性"（AST节点属性）
 - 单闭合标签没有孩子节点
@@ -81,6 +83,8 @@ classDef blue stroke: blue,fill:blue,stroke-width:3,color:white
 class text blue
 ```
 
+![](https://github.com/AngelPP52/tiny-compiler/blob/master/images/dblLabel.jpg)
+
 - 标签和属性都是同级的"属性"（AST节点属性）
 - 右开分号后与左闭分号前包裹的属于孩子节点
 - 右开分号后与左闭分号前之间也可能没有孩子节点（">"的下一个字符就是"<"）
@@ -107,6 +111,8 @@ class attrValue purple
 class attrValue2 purple
 ```
 
+![](https://github.com/AngelPP52/tiny-compiler/blob/master/images/attributeValue.jpg)
+
 - key-value（属性名-属性值）的键值对
 
 > 拓展一：JSX表达式属性值（TODO）
@@ -124,6 +130,8 @@ class start stroke-dash
 class end1 stroke-dash
 ```
 
+![](https://github.com/AngelPP52/tiny-compiler/blob/master/images/JSXAttributeValue.jpg)
+
 - letter
 - this.letter
 - {letter:字符串/letter}
@@ -138,7 +146,7 @@ class end1 stroke-dash
 
 原理：运用有限状态机的原理，JSX语法代码字符串逐个字符输入到功能状态机，由具体的功能状态机根据输入决定下一个状态。最终将所有结果emit出去
 
-*注意：粗体英文字符表示功能状态机；—表示正常流程，---（+--或#--或~--等等）表示上一步可能的分情况；空格均不输出*
+*注意：粗体英文字符表示功能状态机；—表示正常流程，---（+--或#--或~--等等）表示上一步可能的分情况；空格（等号，分号，大括号）均不输出*
 
 - — tokenizer函数：遍历字符，输入给状态机
 - — emit函数：发射一个解析完成的记录｛type，value｝
@@ -178,17 +186,233 @@ class end1 stroke-dash
 
 实现：./src/tokenizer.js
 
-分词结果：./src/images/tokenizer.png
+分词结果：
+
+```json
+{ type: 'parenLeft', value: '<' }
+{ type: 'label', value: 'h1' }
+{ type: 'attributeKey', value: 'id' }
+{ type: 'attributeStringValue', value: 'title' }
+{ type: 'parenRight', value: '>' }
+{ type: 'parenLeft', value: '<' }
+{ type: 'label', value: 'span' }
+{ type: 'parenRight', value: '>' }
+{ type: 'text', value: 'hello' }
+{ type: 'parenLeft', value: '<' }
+{ type: 'backSlash', value: '/' }
+{ type: 'label', value: 'span' }
+{ type: 'parenRight', value: '>' }
+{ type: 'text', value: 'world' }
+{ type: 'parenLeft', value: '<' }
+{ type: 'backSlash', value: '/' }
+{ type: 'label', value: 'h1' }
+{ type: 'parenRight', value: '>' }
+```
 
 ## 语法分析
 
+首先，弄明白，分词结果中哪些结果是我们需要的，而哪些结果是我们不需要的。如果你不太确定，请配合[astexplorer](https://astexplorer.net/)使用
 
+然后，弄明白，分词结果中，哪些是入口，哪些是出口。结合有限状态机，很明显，<...>是标签的入口，</...>是标签的出口，抓住这一点，递归方法walk就很好写了。接下来，只需要关心入口和出口之间的属性，和孩子节点...
 
-## 遍历器
+最后，遍历分词结果生成一棵ast。分词数组的移动指针是个关键，注意在合适的时机，应该采用自增的方式跳过处理某个单词，代码中充分显示这个特点，这也是我debug花时间最多的地方...
+
+实现：./src/parser.js
+
+语法分析结果：
+
+```json
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "JSXElement",
+        "openingElement": {
+          "type": "JSXOpeningElement",
+          "name": {
+            "type": "JSXIdentifier",
+            "name": "h1"
+          },
+          "attributes": [
+            {
+              "type": "JSXAttribute",
+              "name": {
+                "type": "JSXIdentifier",
+                "name": "id"
+              },
+              "value": {
+                "type": "StringLiteral",
+                "value": "title"
+              }
+            }
+          ]
+        },
+        "closingElement": {
+          "type": "JSXClosingElement",
+          "name": {
+            "type": "JSXIdentifier",
+            "name": "h1"
+          }
+        },
+        "children": [
+          {
+            "type": "JSXElement",
+            "openingElement": {
+              "type": "JSXOpeningElement",
+              "name": {
+                "type": "JSXIdentifier",
+                "name": "span"
+              },
+              "attributes": []
+            },
+            "closingElement": {
+              "type": "JSXClosingElement",
+              "name": {
+                "type": "JSXIdentifier",
+                "name": "span"
+              }
+            },
+            "children": [
+              {
+                "type": "JSXText",
+                "value": "hello"
+              }
+            ]
+          },
+          {
+            "type": "JSXText",
+            "value": "world"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
 
 ## 访问器
 
+作用：在遍历抽象语法树时，提供给用户可以自定义的"进入"或"退出"某种类型节点时调用的函数。形式可以是函数或是{enter函数，exist函数}对象
+
+例子：
+
+```js
+let code = '<h1 id="title"><span>hello</span>world</h1>';
+
+let ast = parser(code);
+traverse(ast, {
+    JSXOpeningElement: {
+        enter: function (node, parent) {
+            console.log('进入开标签', node);
+        },
+        exit: function (node, parent) {
+            console.log('退出开标签', node);
+        }
+    }
+})
+```
+
+## 遍历器
+
+递归遍历抽象语法树，这里采取的先序遍历方式，先访问自己再依次访问孩子
+
+这里，需要在访问节点的前面调用enter函数，和结束访问节点的后面调用exist函数
+
+实现：./src/traverse.js
+
+## 转换器
+
+这是我另外一个[jsx-to-js.loader](https://github.com/AngelPP52/ast_homework)的逻辑，可以将jsx代码转成一段js的代码，比较粗糙...
+
+实现：./src/transformer.js
+
+转换结果：
+
+```json
+{
+  "type": "Program",
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": {
+        "type": "CallExpression",
+        "callee": {
+          "type": "MemberExpression",
+          "object": {
+            "type": "Identifier",
+            "name": "React"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "createElement"
+          }
+        },
+        "arguments": [
+          {
+            "type": "StringLiteral",
+            "value": "h1"
+          },
+          {
+            "type": "ObjectExpression",
+            "properties": [
+              {
+                "type": "ObjectProperty",
+                "key": {
+                  "type": "Identifier",
+                  "name": "id"
+                },
+                "value": {
+                  "type": "StringLiteral",
+                  "value": "title"
+                }
+              }
+            ]
+          },
+          {
+            "type": "CallExpression",
+            "callee": {
+              "type": "MemberExpression",
+              "object": {
+                "type": "Identifier",
+                "name": "React"
+              },
+              "property": {
+                "type": "Identifier",
+                "name": "createElement"
+              }
+            },
+            "arguments": [
+              {
+                "type": "StringLiteral",
+                "value": "span"
+              },
+              {
+                "type": "NullLiteral"
+              },
+              {
+                "type": "StringLiteral",
+                "value": "hello"
+              }
+            ]
+          },
+          {
+            "type": "StringLiteral",
+            "value": "world"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
 ## 生成器
+
+采取先序遍历，递归遍历抽象语法树，将特定的节点类型转换成对应的js代码即可。又是递归哟，这回真是深入浅出递归思想啦...
+
+实现：./src/codeGenerator.js
 
 ------
 
