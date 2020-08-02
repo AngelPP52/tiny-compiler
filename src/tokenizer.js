@@ -144,10 +144,6 @@ function text(char) {
     }
 }
 
-let code = '<h1 id="title"><span>hello</span>world</h1>';
-
-tokenizer(code);
-
 function tokenizer(input) {
     tokens = [];
     let state = start;
@@ -158,5 +154,11 @@ function tokenizer(input) {
 }
 
 module.exports = {
-    tokenizer,
+    tokenizer
 };
+
+// let code = '<h1 id="title"><span>hello</span>world</h1>';
+
+// tokenizer(code);
+
+

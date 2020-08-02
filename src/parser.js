@@ -3,7 +3,6 @@ const { tokenizer } = require('./tokenizer');
 
 function parser(code) {
     let tokens = tokenizer(code);
-    console.log(tokens);
     let current = 0; // tokens移动指针
     function walk(parent) {
         let token = tokens[current]; // 当前单词
@@ -16,7 +15,8 @@ function parser(code) {
                 children: []
             }
             token = tokens[++current]; // 标签
-            let labelName = token.value;
+            let labelName = token.value; // 标签名
+
             node.openingElement = {
                 type: 'JSXOpeningElement',
                 name: {
@@ -25,31 +25,35 @@ function parser(code) {
                 },
                 attributes: []
             }
+
             token = tokens[++current]; // 跳过标签
 
             while (token.type != 'parenRight' && token.type === "attributeKey") { // walk所有属性
                 node.openingElement.attributes.push(walk());
                 token = tokens[current];
             }
-            token = tokens[++current]; // 跳过>单词
-            next = tokens[current+1]; // 下一个单词，反斜杠？
-            next_next = tokens[current+2]; // 下一个单词，标签名？
 
+            token = tokens[++current]; // 跳过>单词
+            next = tokens[current+1]; // 下一个单词，反斜杠
+            next_next = tokens[current+2]; // 下一个单词，标签
+
+            // 根据结束标签的标签名一致，中间的内容都是孩子节点
             while (token.type !== 'parenLeft' || token.type === 'parenLeft' && next.type !== 'backSlash' && next_next.value !== labelName) { // walk所有孩子
                 node.children.push(walk());
                 token = tokens[current];
-                next = tokens[current+1]; // 下一个单词，反斜杠？
-                next_next = tokens[current+2]; // 下一个单词，标签名？
+                next = tokens[current+1]; // 下一个单词，反斜杠
+                next_next = tokens[current+2]; // 下一个单词，标签
             }
 
             node.closingElement = walk(node); // walk闭合标签
-            ++current;
+            
             return node;
         } 
         else if(parent && token.type === 'parenLeft' && token.value == '<' && next.type === 'backSlash'){
-            current++;
-            token = tokens[++current]; // 闭合标签
-            current++;
+            current++; // 跳过<单词
+            token = tokens[++current]; // 闭合标签，跳过反斜杠
+            current++; // 跳过标签
+            current++; // 跳过>单词
             return parent.closingElement = {
                 type: "JSXClosingElement",
                 name: {
@@ -77,7 +81,7 @@ function parser(code) {
         else if(token.type === "text"){
             current++; // 跳过>单词
             return {
-                text: "JSXText",
+                type: "JSXText",
                 value: token.value
             }
         }
@@ -101,6 +105,10 @@ function parser(code) {
     return ast;
 }
 
-let code = '<h1 id="title"><span id="name">hello</span>world</h1>';
+module.exports = {
+    parser
+}
 
-console.log(JSON.stringify(parser(code), null, 2));
+// let code = '<h1 id="title"><span>hello</span>world</h1>';
+
+// console.log(JSON.stringify(parser(code), null, 2));
