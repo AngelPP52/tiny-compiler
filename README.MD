@@ -188,7 +188,7 @@ class end1 stroke-dash
 
 分词结果：
 
-```json
+```js
 { type: 'parenLeft', value: '<' }
 { type: 'label', value: 'h1' }
 { type: 'attributeKey', value: 'id' }
@@ -221,7 +221,7 @@ class end1 stroke-dash
 
 语法分析结果：
 
-```json
+```js
 {
   "type": "Program",
   "body": [
@@ -330,7 +330,7 @@ traverse(ast, {
 
 转换结果：
 
-```json
+```js
 {
   "type": "Program",
   "body": [
