@@ -1,6 +1,6 @@
 # 了解前端编译原理-编译器
 
-![The Super Tiny Compiler](images/tiny complier.png)
+![The Super Tiny Compiler](images/tinycomplier.png)
 
 ## 前言
 
@@ -14,7 +14,7 @@
 
 ![img](https://static001.geekbang.org/resource/image/06/93/06b80f8484f4d88c6510213eb27f2093.jpg)
 
-1. 前端：指通用/高级语言，与端接触最紧密的程序代码。需要知道的是，前端代码只是给编译器读的，经过分词、语法分析、AST、遍历等一些系列编译行为可以转成结构化的信息，供后端使用。
+1. 前端：指通用/高级语言，与端接触最紧密的程序代码。需要知道的是，前端代码只是给编译器读的，经过分词、语法分析、`AST`、遍历等一些系列编译行为可以转成结构化的信息，供后端使用。
 2. 后端：生成目标代码，与目标机器有关。
 
 前端涉及到编译原理的地方实在太多了，ES6 转 ES5，TS 转 JS，小程序端开发，安卓端开发等等...
@@ -55,11 +55,11 @@ React.createElement("h1", {
 
 原理：根据输入状态决定下一个状态。程序从开始状态开始，进入下一个状态机，每个状态机可以决定进入的下一个状态机以及退出当前状态机的行为。由于这种约定好的行为特征都能通过特定代码来标识，所以只要事先与机器约定好状态，就能对输入的 A 语言字符拆分成目标分词结果。
 
-状态机的特点：退出状态机时，必须是进入下一个状态机，或者重复调用自己，或者结束状态机工作。
+状态机的特点：**退出状态机时，必须是进入下一个状态机，或者重复调用自己，或者结束状态机工作**。
 
 ### 分析状态机
 
-在分析状态机之前，先整体观察一遍我们的 JSX 代码，得到一些特征：单闭合标签、双闭合标签、解析标签属性。
+在分析状态机之前，先整体观察一遍我们的 JSX 代码，得到一些特征：**单闭合标签、双闭合标签、解析标签属性**。
 
 > 单闭合标签
 
@@ -85,7 +85,7 @@ React.createElement("h1", {
 
 ![img](images/标签属性.png)
 
-表示 key-value（属性名-属性值）的键值对。
+表示 `key value`（属性名-属性值）的键值对。
 
 回看我们的源代码，摘取了以下关键的信息：
 
@@ -101,25 +101,26 @@ _通过正则表达式也能表实现分词的效果_
 
 ## 词法分析
 
-编译器第一步：词法分析。在这个阶段，我们的目标是将代码文本转化一个一个 Token。通过有限状态机的算法对源代码的每一个字符进行遍历，采集有效的 Token 和摒弃无效的 Token。
+编译器第一步：词法分析。
+
+在这个阶段，我们的目标是将代码文本转化一个个 Token。**通过有限状态机的算法对源代码的每一个字符进行遍历，采集有效的 Token 和摒弃无效的 Token。**
 
 ### 如何识别 Token？
 
-一串符合某种语言语法的字符串或操作符，都可以称为 Token。
+一串符合某种语言语法的字符串或操作符，都可以称为 `Token`。
 
 可以将 Token 分为两部分，有效 Token 和无效 Token，与 AST 阶段关心的 Token 则认为是有效 Token，分词阶段需要借助无效 Token 来识别状态机，但最终会把无效 Token 剔除，留下有效 Token 到语法分析阶段。
 
 针对上述 JSX 代码，大致可以区分一下：
 
-- 有效 Token：标签名，属性名，属性值，text 文本。
-
+- 有效 Token：标签名，属性名，属性值，Text 。
 - 无效 token：<、>、=、{、}、"、"等符号。
 
 原理：运用有限状态机的原理，JSX 语法代码字符串逐个字符输入到功能状态机，由具体的功能状态机根据输入决定下一个状态。最终将所有结果 emit 出去（保存到 Token 数组）。
 
 ### 定义状态机
 
-划分好了状态机，可以从状态机分析图直观统计出每个状态机的输入与输出关系，代码中就是用一些 if else 来表示。每个节点为一个有效状态机，根据状态的切换可以很容易得到具体的代码实现。
+划分好了状态机，可以从状态机分析图直观统计出每个状态机的输入与输出关系，代码中就是用一些 `if else` 来表示。每个节点为一个有效状态机，根据状态的切换可以很容易得到具体的代码实现。
 
 
 
@@ -127,7 +128,7 @@ _通过正则表达式也能表实现分词的效果_
 
 **start 状态机**
 
-入口函数，只接收字符：<，进入 foundParenL 状态机。
+入口函数，只接收字符：<，进入 `foundParenL` 状态机。
 
 ```js
 function start(char) {
@@ -141,7 +142,7 @@ function start(char) {
 
 **foundParenL 状态机**
 
-开始解析 < 后面的字符。letter 作为标签名，/则作为闭合标签名，均进入 label 状态机。
+开始解析 < 后面的字符。`letter` 作为标签名，/则作为闭合标签名，均进入 `label` 状态机。
 
 ```js
 function foundParenL(char) {
@@ -159,7 +160,7 @@ function foundParenL(char) {
 
 **label 状态机**
 
-解析标签名后的字符。> 作为闭合标签标记，进入 foundParenR 状态机；空格作为属性标记，进入attributeKey状态机。
+解析标签名后的字符。> 作为闭合标签标记，进入 `foundParenR` 状态机；空格作为属性标记，进入 `attributeKey` 状态机。
 
 ```js
 function label(char) {
@@ -181,7 +182,7 @@ function label(char) {
 
 **attributeKey 状态机**
 
-解析标签名+空格后的字符。=作为属性名结束标记，进入 attributeValue 状态机。
+解析标签名+空格后的字符。=作为属性名结束标记，进入 `attributeValue` 状态机。
 
 ```js
 function attributeKey(char) {
@@ -199,7 +200,7 @@ function attributeKey(char) {
 
 **attributeValue 状态机**
 
-解析属性名+等号后的字符。"作为普通属性值开始标记，进入 attributeStringValue 状态机；{作为 JSX 属性值开始标记，进入 attributeJSXValue 状态机。
+解析属性名+等号后的字符。"作为普通属性值开始标记，进入 `attributeStringValue` 状态机；{作为 JSX 属性值开始标记，进入 `attributeJSXValue` 状态机。
 
 ```js
 function attributeValue(char) {
@@ -220,7 +221,7 @@ function attributeValue(char) {
 
 **attributeStringValue 状态机**
 
-解析属性名="后的字符。letter 作为属性值，进入 attributeStringValue 状态机；"作为属性值结束标记，进入 tryLeaveAttribute 状态机。
+解析属性名="后的字符。`letter` 作为属性值，进入 `attributeStringValue` 状态机；"作为属性值结束标记，进入 `tryLeaveAttribute` 状态机。
 
 ```js
 function attributeStringValue(char) {
@@ -238,7 +239,7 @@ function attributeStringValue(char) {
 
 **attributeJSXValue 状态机**
 
-解析属性名={后的字符。letter 作为属性值，进入 attributeJSXValue 状态机；}作为 JSX 属性值结束标记，进入 tryLeaveAttribute 状态机。
+解析属性名={后的字符。`letter` 作为属性值，进入 `attributeJSXValue` 状态机；}作为 JSX 属性值结束标记，进入 `tryLeaveAttribute` 状态机。
 
 ```js
 function attributeJSXValue(char) {
@@ -256,7 +257,7 @@ function attributeJSXValue(char) {
 
 **tryLeaveAttribute 状态机**
 
-准备退出attribute的解析。
+准备退出 `attribute` 的解析。
 
 ```js
 function tryLeaveAttribute(char) {
@@ -315,7 +316,7 @@ function text(char) {
 
 经过词法分析阶段，我们拿到了一个有效 Token 数组。
 
-语法阶段需要完成的任务：将一个数组转成一棵有意义的树（AST 树）。
+语法阶段需要完成的任务：**将一个数组转换成一棵有意义的树（`AST` ）**。
 
 > 抽象语法树（Abstract Syntax Tree，AST），或简称语法树（Syntax tree），是源代码语法结构的一种抽象表示。它以树状的形式表现编程语言的语法结构，树上的每个节点都表示源代码中的一种结构。之所以说语法是“抽象”的，是因为这里的语法并不会表示出真实语法中出现的每个细节。
 
@@ -325,7 +326,7 @@ function text(char) {
 
 通常，数组结构转成树结构，是一个递归的过程，而递归需要关心两个条件：下一个递归的入口 + 退出当前递归的条件。
 
-在这里，AST 树结构需要关心的节点有：顶层节点（Program）、标签节点（h1、span）、叶子/孩子节点（id、title、hello、world）。
+在这里，AST 树结构需要关心的节点有：顶层节点（`Program`）、标签节点（`h1`、`span`）、叶子/孩子节点（`id`、`title`、`hello`、`world`）。
 
 ![img](images/AST树结构.png)
 
@@ -431,11 +432,11 @@ else if(token.type === "attributeKey"){
 
 ## 访问器
 
-在遍历抽象语法树时，完成某种类型节点的"进入"或"退出"两个步骤则为一次访问。
+**在遍历抽象语法树时，完成某种类型节点的"进入"或"退出"两个步骤则为一次访问**。
 
-通常，访问器由用户自定义。例如压缩CSS时，可以对重复的样式节点进行删减，然后重新生成新的 AST树。
+通常，访问器由用户自定义。例如压缩 `CSS` 时，可以对重复的样式节点进行删减，然后重新生成新的 `AST` 树。
 
-访问器的形式可以是函数或是{enter函数，exist函数}对象。
+访问器的形式可以是函数或是一个{`enter` ，`exist` }对象。
 
 example：
 
@@ -459,11 +460,13 @@ _访问器并非编译器中必须的一环，主要是为了对外开发一些�
 
 ## 遍历器
 
+遍历 AST 树是编译器中最基本且至关重要的一环，也其中最需要考虑性能的一环。
+
 递归遍历抽象语法树，树的遍历有几种方式，先序、中序、后序。
 
-大多数场景下，在便利 AST 树时，用户都希望能够先访问到父节点，所以这里采取了先序遍历方式，即先访问自己再依次访问孩子。
+大多数场景下，在遍历 AST 树时，用户都希望能够先访问到父节点，所以这里采取了先序遍历方式，即先访问自己再依次访问孩子。
 
-访问器的作用就表现在这一个阶段，在访问节点的前面调用enter函数，和结束访问节点的后面调用exist函数。
+访问器的作用就表现在这一个阶段，在访问节点的前面调用 `enter` 函数，和结束访问节点的后面调用 `exist` 函数。
 
 遍历器的实现：
 
@@ -550,7 +553,7 @@ function traverse(ast, visitor) {
 
 实际上，遍历阶段并不能对 AST 树产生任何副作用，它只有遍历访问的作用。
 
-如果想要将一段 JSX 代码转成纯 JS 代码，必须依靠转换器，所以转换器的职责就是：将已有的一棵 AST 树转成一颗目标 JS 代码的 AST 树。
+如果想要将一段 JSX 代码转成纯 JS 代码，必须依靠转换器，所以转换器的职责就是：**将已有的一棵 AST 树转成一颗目标 JS 代码的 AST 树**。
 
 我们先通过 `astexplorer` 网站看一下最终要生成的 AST 树长什么样：
 
@@ -558,7 +561,7 @@ function traverse(ast, visitor) {
 
 对比之前的节点，新的 AST 树中的节点类型都发生了明显的变化，如变成了以下几种：`nullLiteral`（null 对象）、`memberExpression`（函数参数）、`identifier`（某些特征值）、`stringLiteral`（字符串类型）、`objectExpression`（对象表达式）、`objectProperty`（对象属性）、`callExpression`（函数类型）。
 
-为了能让我的转换器运行起来，模仿 babel 编译的方式，需要自定义一些接口和类，如：节点替换函数 replaceWith，节点类型判断类 t。由于篇幅问题，具体请看 Git 仓库。
+为了能让我的转换器运行起来，模仿 `babel` 编译的方式，需要自定义一些接口和类，如：节点替换函数 `replaceWith`，节点类型判断类 `t`。由于篇幅问题，具体请看 `Git` 仓库。
 
 转换器的实现：
 
@@ -610,11 +613,11 @@ function transformer(ast) {
 
 ## 生成器
 
-还记得，在词法分析阶段中，我们把代码转成了 Token 数组，在语法分析阶段中，我们把 Token 数组转成了 AST 树，在转换器阶段，我们把一颗旧的 AST 树转成了新的 AST 树。
+还记得，在词法分析阶段中，我们把代码转成了 `Token` 数组，在语法分析阶段中，我们把 `Token` 数组转成了 `AST` 树，在转换器阶段，我们把一颗旧的 `AST` 树转成了新的 `AST` 树。
 
-为了最终拿到的是一串纯 JS代码字符串，而不是一个 JS 对象，在生成器阶段，我们需要把一颗 AST 树转成目标代码的字符串形式。
+为了最终拿到的是一串纯 JS 代码字符串，而不是一个 JS 对象，在生成器阶段，我们需要把一颗 AST 树转成目标代码的字符串形式。
 
-简单来说，就是又要遍历树，然后把一个个节点换成代码字符串（代码中的 swtich case），最终把他们拼接成一个字符串。
+简单来说，就是又要遍历树，然后把一个个节点换成代码字符串（代码中的 swtich case），**最终把他们拼接成一个字符串**。
 
 生成器的实现：
 
